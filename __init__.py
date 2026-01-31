@@ -8,6 +8,9 @@ import json
 
 WEB_DIRECTORY = "./dist"
 
+# Small dummy black image tensor (safe placeholder when nothing generated)
+DUMMY_IMAGE = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+
 class XAIImagineImage:
     @classmethod
     def INPUT_TYPES(cls):
@@ -27,14 +30,14 @@ class XAIImagineImage:
     RETURN_NAMES = ("image", "status",)
     FUNCTION = "generate_image"
     CATEGORY = "xAI/Imagine"
-    OUTPUT_NODE = False  # Not an output-only node
+    OUTPUT_NODE = False
 
     def generate_image(self, prompt: str, api_key: str, n: int = 1, aspect_ratio: str = "16:9", response_format: str = "url"):
         status_msg = "Unknown status"
 
         if not api_key or not api_key.strip():
             status_msg = "Error: xAI API key is required. Get one from https://console.x.ai"
-            return (torch.empty(0), status_msg)
+            return (DUMMY_IMAGE, status_msg)
 
         api_url = "https://api.x.ai/v1/images/generations"
         headers = {
@@ -50,20 +53,19 @@ class XAIImagineImage:
         }
 
         try:
-            resp = requests.post(api_url, headers=headers, json=payload, timeout=90)  # Slightly longer timeout for safety
+            resp = requests.post(api_url, headers=headers, json=payload, timeout=90)
             if resp.status_code != 200:
                 try:
                     err_data = resp.json()
                     err_msg = err_data.get("error", {}).get("message", f"HTTP {resp.status_code}")
                 except json.JSONDecodeError:
                     err_msg = resp.text.strip() or f"HTTP {resp.status_code} - No details"
-                
+
                 status_msg = f"API Error ({resp.status_code}): {err_msg}"
-                return (torch.empty(0), status_msg)
+                return (DUMMY_IMAGE, status_msg)
 
             data = resp.json()
             images = []
-            revised_prompts = []  # Optional future use
 
             for item in data.get("data", []):
                 if response_format == "url" and "url" in item:
@@ -77,33 +79,31 @@ class XAIImagineImage:
                 else:
                     raise ValueError("Unexpected response: missing image data")
 
-                # Collect any revised_prompt if present (some APIs return it)
-                if "revised_prompt" in item:
-                    revised_prompts.append(item["revised_prompt"])
-
                 img_np = np.array(pil_img).astype(np.float32) / 255.0
-                img_tensor = torch.from_numpy(img_np)[None, ...]  # Add batch dim per image
+                img_tensor = torch.from_numpy(img_np)[None, ...]  # (1, H, W, 3)
                 images.append(img_tensor)
 
             if not images:
-                status_msg = "API returned no images"
-                return (torch.empty(0), status_msg)
+                status_msg = "API returned no images (empty data array)"
+                return (DUMMY_IMAGE, status_msg)
 
-            batch_tensor = torch.cat(images, dim=0)  # Proper batch (n, H, W, 3)
+            batch_tensor = torch.cat(images, dim=0)  # (n, H, W, 3)
 
             count = len(images)
             status_msg = f"Generated {count} image(s) successfully"
-            if revised_prompts:
-                status_msg += f" | Revised prompt(s): {', '.join(revised_prompts)}"
+            # Optional: capture revised_prompt if present
+            revised = [item.get("revised_prompt") for item in data.get("data", []) if "revised_prompt" in item]
+            if revised:
+                status_msg += f" | Revised: {', '.join(revised)}"
 
             return (batch_tensor, status_msg)
 
         except requests.exceptions.RequestException as e:
             status_msg = f"Request failed: {str(e)}"
-            return (torch.empty(0), status_msg)
+            return (DUMMY_IMAGE, status_msg)
         except Exception as e:
             status_msg = f"Unexpected error: {str(e)}"
-            return (torch.empty(0), status_msg)
+            return (DUMMY_IMAGE, status_msg)
 
 
 NODE_CLASS_MAPPINGS = {
