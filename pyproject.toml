@@ -1,17 +1,17 @@
 [project]
-name = "comfyui-custom-node"
-description = "A ComfyUI custom node"
+name = "comfyui-xai-imagine-api"
+description = "A ComfyUI custom node for xai Imagine endpoint"
 version = "1.0.0"
 readme = "README.md"
 license = { file = "LICENSE" }
 
 [project.urls]
-Repository = "https://github.com/your-username/comfyui-custom-node"
+Repository = "https://github.com/Viningr/comfyui-xai-imagine-api"
 
 [tool.comfy]
-PublisherId = "your-username"
-DisplayName = "My Custom Node"
-Icon = "https://raw.githubusercontent.com/your-username/comfyui-custom-node/main/assets/icon.svg"
+PublisherId = "Viningr"
+DisplayName = "ComfyUI Xai Imagine Api"
+Icon = "https://raw.githubusercontent.com/Viningr/comfyui-xai-imagine-api/main/assets/icon.svg"
 requires-comfyui = ">=0.3.0"
 includes = ['dist/']
 
