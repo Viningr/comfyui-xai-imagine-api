@@ -10,7 +10,7 @@ Repository = "https://github.com/Viningr/comfyui-xai-imagine-api"
 
 [tool.comfy]
 PublisherId = "Viningr"
-DisplayName = "ComfyUI Xai Imagine Api"
+DisplayName = "ComfyUI Xai Imagine Api Node"
 Icon = "https://raw.githubusercontent.com/Viningr/comfyui-xai-imagine-api/main/assets/icon.svg"
 requires-comfyui = ">=0.3.0"
 includes = ['dist/']
