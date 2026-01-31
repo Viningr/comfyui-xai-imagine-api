@@ -1,7 +1,7 @@
 {
-  "name": "comfyui-custom-node",
+  "name": "comfyui-xai-imagine-api",
   "version": "1.0.0",
-  "description": "A ComfyUI custom node",
+  "description": "A ComfyUI custom node for x.ai imagine endpoints",
   "type": "module",
   "scripts": {
     "dev": "tsc && vite build --watch",
@@ -16,7 +16,7 @@
     "custom node",
     "extension"
   ],
-  "author": "Your Name",
+  "author": "Robert Vining",
   "license": "MIT",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
